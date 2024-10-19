@@ -29,3 +29,9 @@ def serial_ports():
         except (OSError, serial.SerialException):
             pass
     return result
+
+def reload_comport():
+    comport_list = []
+    for isi in serial_ports():
+        comport_list.append(str(isi))
+    return comport_list

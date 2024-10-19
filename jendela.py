@@ -1,5 +1,6 @@
 import dearpygui.dearpygui as dpg
 import random
+from PIL import ImageGrab
 
 class SensorWindow:
     def __init__(self, label, width, pos, window_id, **kwargs):
@@ -29,11 +30,9 @@ class SensorWindow:
         with dpg.window(label=self.label, width=self.width, pos=self.pos, id=self.window_id, no_close=self.no_close,
                         height=self.height):
             if self.font: dpg.bind_font(self.font)
-            dpg.add_text("Hello, world")
-
-            btn = dpg.add_button(label="Apply 2", callback=self.get_window_position)
+            btn = dpg.add_button(label="", callback=self.get_window_position)
             dpg.set_item_label(btn, "Button 57")
-            dpg.set_item_width(btn, 200)
+            dpg.set_item_width(btn, self.width-15)
 
             # Create the plot as part of the class
             self.create_plot()
@@ -70,7 +69,6 @@ class ErrorMessageBox:
 
     def close(self, sender, app_data=None, user_data=None):
         """Closes the error window."""
-        print(self.pos)
         dpg.delete_item(self.window_id)
 
 
@@ -81,6 +79,7 @@ def dark_gray_window():
         with dpg.theme_component(dpg.mvAll):
             # Set window background color
             dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (50, 50, 50, 255))  # Dark gray
+    return window_theme
             
 def light_brown_window():
     """Creates a custom theme for the window background and text color."""
@@ -90,3 +89,11 @@ def light_brown_window():
             # Set window background color
             dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (181, 101, 29, 255)) # Light brown
     return window_theme
+
+def get_resolution():
+    img = ImageGrab.grab()
+    return img.size[0], img.size[1]
+
+def trigger_error(sender=None, app_data=None, user_data=None):
+    error_box = ErrorMessageBox(f"Error: {user_data['error_msg']}")
+    error_box.show()
