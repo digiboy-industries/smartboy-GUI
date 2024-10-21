@@ -71,6 +71,49 @@ class ErrorMessageBox:
         """Closes the error window."""
         dpg.delete_item(self.window_id)
 
+import dearpygui.dearpygui as dpg
+import datetime
+
+class AboutWindow:
+    def __init__(self):
+        """Initialize the About window but don't show it yet."""
+        self.window_tag = "about_window"
+
+    def show(self):
+        """Creates and shows the About window."""
+        with dpg.window(label="About", width=500, height=300, tag=self.window_tag, pos=(250, 200), no_resize=True, no_collapse=True):
+            dpg.add_text("Tangerang Selatan, Indonesia", pos=(280, 25))  # Location and flag at top right
+            dpg.add_spacer(height=12)
+            with dpg.group(horizontal=False):  # Main content area
+                # Frame to show text
+                with dpg.child_window(height=150, border=True):
+                    dpg.add_text("""Smartboy GUI is graphical interface application to aqcuire data from the industrial sensors.
+This program is able to record up to 8 sensors simultaneously and record it to a database.
+Author dedicated this programm to his sons: Musa and Eisa."""
+                                 , wrap=450)
+                    
+            
+            # Dynamic date and time label
+            dpg.add_text(self.get_current_datetime(), tag="date_time_label")  # Below the main text
+            
+            # Hyperlink to digiboy.com
+            dpg.add_text("Visit: ")
+            dpg.add_text("https://digiboy.com", color=(50, 188, 255), bullet=True)  # Center bottom link
+            
+            # OK Button
+            dpg.add_button(label="OK", pos=(200, 250), width=250, callback=self.close)
+
+    def close(self, sender, app_data, user_data):
+        """Close the About window."""
+        dpg.delete_item(self.window_tag)
+
+    def update_datetime_label(self):
+        """Updates the datetime label in the About window."""
+        dpg.set_value("date_time_label", self.get_current_datetime())
+
+    def get_current_datetime(self):
+        """Gets the current date and time as a string."""
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def dark_gray_window():
     """Creates a custom theme for the window background and text color."""
