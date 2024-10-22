@@ -8,17 +8,14 @@ from hardware import reload_comport
 from jendela import SensorWindow, AboutWindow, trigger_error, \
     light_brown_window, get_resolution, dark_gray_window
 
-global com_sett
-global comport_list
-global settings
-global ser1
-global ser2
-global raw_data1
-global raw_data2
+settings = None
+v_execute1 = False
+v_execute2 = False
 com_sett = {"port1" : None, "port2" : None}
 comport_list = []
 comport_list = reload_comport()
-
+raw_data1 = None
+raw_data2 = None
 ####
 # RUMUS LINEAR #
 ####
@@ -60,10 +57,27 @@ def load_state():
 settings = load_state()
 
 def fetch_serial_data():
-    if ser1.is_open and ser2.is_open:
-            raw_data1 = ser1.readline().decode('utf-8').strip()
-            raw_data2 = ser2.readline().decode('utf-8').strip()
-            sleep(float(settings["settings"]["interval"]))
+    global raw_data1
+    global raw_data2
+    global ser1
+    global ser2
+    try:
+        if v_execute1 and v_execute2:
+            if ser1.is_open and ser2.is_open:
+                raw_data1 = ser1.readline().decode('utf-8').strip()
+                raw_data2 = ser2.readline().decode('utf-8').strip()
+        elif v_execute1 and not v_execute2:
+            if ser1.is_open:
+                raw_data1 = ser1.readline().decode('utf-8').strip()
+        elif v_execute2 and not v_execute1:
+            if ser2.is_open:
+                raw_data2 = ser2.readline().decode('utf-8').strip()
+                #raw_data2 = ser2.readline()
+                print(raw_data2)
+        sleep(float(settings["settings"]["interval"]))
+    except KeyError as e:
+        # print(e)
+        pass
 
 def print_me(sender):
     print(f"Menu Item: {sender}")
@@ -90,6 +104,7 @@ def keluar():
 
 def get_combo_item(sender, app_data, user_data):
     # app_data contains the selected value
+    global com_sett
     selected_value = app_data
     if user_data["status"] == 1:
         com_sett["port1"] = str(selected_value)
@@ -98,6 +113,10 @@ def get_combo_item(sender, app_data, user_data):
     return str(selected_value)
 
 def spawn_4windows(sender, app_data, user_data):
+    global ser1
+    global ser2
+    global v_execute1
+    global v_execute2
     if (user_data["range1"] == 1) and (user_data["range2"] == 5):
         if com_sett["port1"] == None:
             trigger_error(user_data={"error_msg": "No Comm Port Selected! Please select first"}, sender=sender)
@@ -108,7 +127,9 @@ def spawn_4windows(sender, app_data, user_data):
                 labeli = f"Sensor {i} - " + settings["settings"]["sensor_data"][str(i)]["name"]
                 SensorWindow(label=labeli, width=240, pos=((i-1)*244, 25), window_id=i, no_close=True)
             ser1 = serial.Serial(com_sett["port1"], 115200, timeout=1)
+            v_execute1 = True
             dpg.hide_item("comm_sett_window")
+
     
     if (user_data["range1"] == 5) and (user_data["range2"] == 9):
         if com_sett["port2"] == None:
@@ -120,6 +141,7 @@ def spawn_4windows(sender, app_data, user_data):
                 labeli = f"Sensor {i} - " + settings["settings"]["sensor_data"][str(i)]["name"]
                 SensorWindow(label=labeli, width=240, pos=((i-5)*244, 395), window_id=i, no_close=True)
             ser2 = serial.Serial(com_sett["port2"], 115200, timeout=1)
+            v_execute2 = True
             dpg.hide_item("comm_sett_window")
 
 dpg.create_context()
@@ -225,9 +247,14 @@ dpg.show_viewport()
 
 # below replaces, start_dearpygui()
 while dpg.is_dearpygui_running():
+    # global raw_data1
+    # global raw_data2
     # insert here any code you would like to run in the render loop
     # you can manually stop by using stop_dearpygui()
-
+    if v_execute1 or v_execute2: 
+        fetch_serial_data()
+        # if raw_data1: print(raw_data1)
+        # if raw_data2: print(raw_data2)
     dpg.render_dearpygui_frame()
 
 save_state(settings)
