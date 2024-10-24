@@ -118,21 +118,31 @@ Author dedicated this programm to his sons: Musa and Eisa."""
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def dark_gray_window():
-    """Creates a custom theme for the window background and text color."""
-    # Create a new theme for the window
     with dpg.theme() as window_theme:
         with dpg.theme_component(dpg.mvAll):
             # Set window background color
-            dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (50, 50, 50, 255))  # Dark gray
+            dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (50, 50, 50, 255))
     return window_theme
             
 def light_brown_window():
-    """Creates a custom theme for the window background and text color."""
-    # Create a new theme for the window
     with dpg.theme() as window_theme:
         with dpg.theme_component(dpg.mvAll):
             # Set window background color
-            dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (181, 101, 29, 255)) # Light brown
+            dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (181, 101, 29, 255))
+    return window_theme
+
+def dark_purple():
+    with dpg.theme() as window_theme:
+        with dpg.theme_component(dpg.mvAll):
+            # Set window background color
+            dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (26, 1, 59, 255))
+    return window_theme
+
+def dark_green():
+    with dpg.theme() as window_theme:
+        with dpg.theme_component(dpg.mvAll):
+            # Set window background color
+            dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (15, 48, 0, 255))
     return window_theme
 
 def get_resolution():
