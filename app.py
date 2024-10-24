@@ -1,3 +1,4 @@
+# بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
 # Created by        : @aviezab
 # First Written     : 2024 10 16
 import json
@@ -7,7 +8,8 @@ import serial
 import dearpygui.dearpygui as dpg
 from hardware import reload_comport
 from jendela import SensorWindow, AboutWindow, trigger_error, \
-    light_brown_window, get_resolution, dark_gray_window
+    light_brown_window, get_resolution, dark_gray_window, \
+    dark_purple, dark_green
 
 settings = None
 v_execute1 = False
@@ -15,6 +17,7 @@ v_execute2 = False
 com_sett = {"port1" : None, "port2" : None}
 comport_list = []
 comport_list = reload_comport()
+null_literal = "S1=0.00mA;0.00mV;S2=0.00mA;0.00mV;S3=0.00mA;0.00mV;S4=0.00mA;0.00mV;"
 raw_data1 = None
 raw_data2 = None
 nyala = True
@@ -66,6 +69,8 @@ def fetch_serial_data():
             if v_execute1 and v_execute2:
                 # print("R1R2")
                 if ser1.is_open and ser2.is_open:
+                    ser1.flushInput()
+                    ser2.flushInput()
                     raw_data1 = ser1.readline().decode('utf-8').strip()
                     raw_data2 = ser2.readline().decode('utf-8').strip()
                     print(raw_data1)
@@ -73,11 +78,13 @@ def fetch_serial_data():
             if v_execute1:
                 # print("R1")
                 if ser1.is_open:
+                    ser1.flushInput()
                     raw_data1 = ser1.readline().decode('utf-8').strip()
                     print(raw_data1)
             if v_execute2:
                 # print("R2")
                 if ser2.is_open:
+                    ser2.flushInput()
                     raw_data2 = ser2.readline().decode('utf-8').strip()
                     print(raw_data2)
             sleep(float(settings["settings"]["interval"]))
@@ -122,6 +129,9 @@ def show_comm_setting():
 def show_sensor_sett_setting():
     sensor_sett_window(sender=None, app_data=None, user_data=None)
 
+def show_interval_setting():
+    interval_sett_window(sender=None, app_data=None, user_data=None)
+
 def reload_comm_window(sender, app_data, user_data):
     global comport_list
     comport_list = reload_comport()
@@ -132,6 +142,7 @@ def delete_window(sender, app_data, user_data):
     dpg.delete_item(sender)
 
 def keluar():
+    dpg.stop_dearpygui()
     save_state(settings)
     dpg.destroy_context()
     exit()
@@ -202,47 +213,58 @@ def append_for_graphs():
         if v_execute1:
             for i in range(1,5):
                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
-                temp = parse_sensor_data(raw_data1)
-                ns = "S" + str(i)
-                if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
-                if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
-                try:
-                    ymin = settings["settings"]["sensor_data"][str(i)]["min"]
-                    ymax = settings["settings"]["sensor_data"][str(i)]["max"]
-                    xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
-                    xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
-                    h = (y - ymax)*(xmax-xmin) / (ymax - ymin)
-                    h = round(h, 3)
-                except:
-                    h = 0
-                sensor_graph[str(i)]["y"].append(h)
-                sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
-                l_name = "plot" + str(i)
-                print(l_name)
-                dpg.set_value(l_name, [sensor_graph[str(i)]["y"], sensor_graph[str(i)]["x"]])
+                if (raw_data1 is not None) and (str(raw_data1).strip() != "") :
+                    temp = parse_sensor_data(raw_data1)
+                    ns = "S" + str(i)
+                    if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
+                    if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
+                    try:
+                        ymin = settings["settings"]["sensor_data"][str(i)]["min"]
+                        ymax = settings["settings"]["sensor_data"][str(i)]["max"]
+                        xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
+                        xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
+                        h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
+                        if (y>0): h = abs(round(h, 3)) 
+                        elif(y<0 and y<ymin): h = 0
+                        else: h = round(h, 3)
+                    except:
+                        h = 0
+                    sensor_graph[str(i)]["y"].append(h)
+                    sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
+                    l_name = "plot" + str(i)
+                    dpg.set_value(l_name, [sensor_graph[str(i)]["x"], sensor_graph[str(i)]["y"]])
+                else:
+                    continue
+                
 
         if v_execute2:
             for j in range(5,9):
                 i = j -4
                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
-                temp = parse_sensor_data(raw_data1)
-                ns = "S" + str(i)
-                if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
-                if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
-                try:
-                    ymin = settings["settings"]["sensor_data"][str(i)]["min"]
-                    ymax = settings["settings"]["sensor_data"][str(i)]["max"]
-                    xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
-                    xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
-                    h = (y - ymax)*(xmax-xmin) / (ymax - ymin)
-                    h = round(h, 3)
-                except:
-                    h = 0
-                sensor_graph[str(i)]["y"].append(h)
-                sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
-                l_name = "plot" + str(i)
-                print(l_name)
-                dpg.set_value(l_name, [sensor_graph[str(i)]["y"], sensor_graph[str(i)]["x"]])
+                if (raw_data2 is not None) :
+                    temp = parse_sensor_data(raw_data2)
+                    ns = "S" + str(i)
+                    if settings["settings"]["sensor_data"][str(j)]["type"] == "voltage": y = temp[ns]["voltage"]
+                    if settings["settings"]["sensor_data"][str(j)]["type"] == "current": y = temp[ns]["current"]
+                    try:
+                        ymin = settings["settings"]["sensor_data"][str(j)]["min"]
+                        ymax = settings["settings"]["sensor_data"][str(j)]["max"]
+                        xmax = settings["settings"]["sensor_data"][str(j)]["maxunit"]
+                        xmin = settings["settings"]["sensor_data"][str(j)]["minunit"]                        
+                        h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
+                        if (y>0): h = abs(round(h, 3)) 
+                        elif(y<0 and y<ymin): h = 0
+                        else: h = round(h, 3)
+                    except:
+                        h = 0
+                    sensor_graph[str(j)]["y"].append(h)
+                    sensor_graph[str(j)]["x"].append((len(sensor_graph[str(j)]["y"])) * settings["settings"]["interval"])
+                    l_name = "plot" + str(j)
+                    dpg.set_value(l_name, [sensor_graph[str(j)]["x"], sensor_graph[str(j)]["y"]])
+                else:
+                    continue
+        # print(sensor_graph[str("5")])
+        sleep(float(settings["settings"]["interval"]))
 
 # Create GUI Context
 dpg.create_context()
@@ -259,6 +281,7 @@ with dpg.viewport_menu_bar():
     with dpg.menu(label="Settings"):
         dpg.add_menu_item(label="Comm Port Setting", callback=show_comm_setting, check=False)
         dpg.add_menu_item(label="Sensor Setting & Calibration", callback=show_sensor_sett_setting)
+        dpg.add_menu_item(label="Interval Time Setting", callback=show_interval_setting)
 
 # Comm Port Setting Window
 def comm_window(sender, app_data, user_data):
@@ -289,7 +312,6 @@ def load_sensor_settings(sender, app_data, user_data):
     
     
 def save_sensor_settings(sender, app_data, user_data):
-    settings["settings"]["interval"] = dpg.get_value("tinterval")
     sensor_number = str(dpg.get_value("sensor_selector"))  # Get selected sensor number
     # Save the sensor data dictionary with the new values
     settings["settings"]["sensor_data"][sensor_number]["type"] = dpg.get_value("sens_type")
@@ -304,7 +326,7 @@ def save_sensor_settings(sender, app_data, user_data):
 def sensor_sett_window(sender, app_data, user_data):
     with dpg.window(label="Sensor Setting & Calibration", width=400, 
                     tag="sensor_sett_window", pos=(300, 300), on_close=delete_window):
-        dpg.bind_item_theme(dpg.last_item(), light_brown_window())
+        dpg.bind_item_theme(dpg.last_item(), dark_purple())
         dpg.bind_item_font(dpg.last_item(), f15)        
         dpg.add_combo(["1", "2", "3", "4", "5", "6", "7", "8"], label="Select Sensor",\
             tag="sensor_selector", default_value="", callback=load_sensor_settings)
@@ -330,23 +352,35 @@ def sensor_sett_window(sender, app_data, user_data):
         with dpg.group(horizontal=True):
             dpg.add_text("Sensor unit       :")
             dpg.add_input_text(label="", tag="sens_unit", width=200)
-        with dpg.group(horizontal=True):
-            dpg.add_separator()
-            dpg.add_text("Time interval (s) :")
-            dpg.add_input_float(label="", tag="tinterval", width=200)
-            dpg.set_value("tinterval", settings["settings"]["interval"])
         dpg.add_spacer()
         with dpg.group(horizontal=True):
             dpg.add_spacer(width=150)
             dpg.add_button(label="Save", tag="btn_save_sensor", callback=save_sensor_settings)
-            
+
+def interval_save(sender, app_data, user_data):
+    settings["settings"]["interval"] = dpg.get_value("tinterval")
+    dpg.delete_item("sensor_sett_window")
+
+# Interval Acq Setting Window
+def interval_sett_window(sender, app_data, user_data):
+    with dpg.window(label="Interval Acquisition Setting", width=400, 
+                    tag="interval_sett_window", pos=(300, 300), on_close=delete_window):
+        dpg.bind_item_theme(dpg.last_item(), dark_green())
+        dpg.bind_item_font(dpg.last_item(), f15)                    
+        dpg.add_spacer(height=10)
+        with dpg.group(horizontal=True):            
+            dpg.add_text("Time interval (s) :")
+            dpg.add_input_float(label="", tag="tinterval", width=200)
+            dpg.set_value("tinterval", settings["settings"]["interval"])
+        with dpg.group(horizontal=True):
+            dpg.add_spacer(width=150)
+            dpg.add_button(label="Save", tag="btn_save_inter", callback=interval_save)
 
 # dpg.set_viewport_small_icon("path/to/small_icon.ico")
 # dpg.set_viewport_large_icon("path/to/large_icon.ico")
 about_window = AboutWindow()
 
 dpg.create_viewport(title='Smartboy GUI', width=1024, height=768, resizable=False)
-
 # put viewport to the center of screen
 dpg.set_viewport_pos([get_resolution()[0]/4, get_resolution()[1]/8])
 dpg.setup_dearpygui()
