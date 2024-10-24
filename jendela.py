@@ -31,8 +31,8 @@ class SensorWindow:
         with dpg.window(label=self.label, width=self.width, pos=self.pos, tag=self.window_id, no_close=self.no_close,
                         height=self.height):
             if self.font: dpg.bind_font(self.font)
-            btn = dpg.add_button(label="", callback=self.get_window_position)
-            dpg.set_item_label(btn, "Button 57")
+            tagbtn = "btn" + str(self.window_id)
+            btn = dpg.add_button(label="<>", callback=self.get_window_position, tag=tagbtn)
             dpg.set_item_width(btn, self.width-15)
             # Create the plot as part of the class
             self.create_plot()
