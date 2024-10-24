@@ -232,7 +232,10 @@ def append_for_graphs():
                     sensor_graph[str(i)]["y"].append(h)
                     sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
                     l_name = "plot" + str(i)
+                    b_name = "btn" + str(i)
+                    b_lbl = settings["settings"]["sensor_data"][str(i)]["unit"]
                     dpg.set_value(l_name, [sensor_graph[str(i)]["x"], sensor_graph[str(i)]["y"]])
+                    dpg.set_item_label(b_name, b_lbl)
                 else:
                     continue
                 
@@ -260,7 +263,10 @@ def append_for_graphs():
                     sensor_graph[str(j)]["y"].append(h)
                     sensor_graph[str(j)]["x"].append((len(sensor_graph[str(j)]["y"])) * settings["settings"]["interval"])
                     l_name = "plot" + str(j)
+                    b_name = "btn" + str(j)
+                    b_lbl = settings["settings"]["sensor_data"][str(j)]["unit"]
                     dpg.set_value(l_name, [sensor_graph[str(j)]["x"], sensor_graph[str(j)]["y"]])
+                    dpg.set_item_label(b_name, b_lbl)
                 else:
                     continue
         # print(sensor_graph[str("5")])
@@ -291,13 +297,13 @@ def comm_window(sender, app_data, user_data):
         dpg.bind_item_font(dpg.last_item(), f15)
         dpg.add_button(label="Reload Port List", callback=reload_comm_window)
         dpg.add_text("Modul 1 Comm Port: ")
-        dpg.add_combo(user_data["comport"], tag=101, callback=get_combo_item, user_data={"status" : 1})
+        dpg.add_combo(user_data["comport"], tag="combo_com1", callback=get_combo_item, user_data={"status" : 1})
         dpg.add_button(label="Execute", callback=spawn_4windows, user_data={"range1":1, "range2":5})
         dpg.add_text("Modul 2 Comm Port: ")
-        dpg.add_combo(user_data["comport"], tag=102, callback=get_combo_item, user_data={"status" : 2})
+        dpg.add_combo(user_data["comport"], tag="combo_com2", callback=get_combo_item, user_data={"status" : 2})
         dpg.add_button(label="Execute", callback=spawn_4windows, user_data={"range1":5, "range2":9})
-        if com_sett["port1"] is not None: dpg.set_value(101, com_sett["port1"])
-        if com_sett["port2"] is not None: dpg.set_value(101, com_sett["port2"])
+        if com_sett["port1"] is not None: dpg.set_value("combo_com1", com_sett["port1"])
+        if com_sett["port2"] is not None: dpg.set_value("combo_com2", com_sett["port2"])
 
 def load_sensor_settings(sender, app_data, user_data):
     sensor_number = str(dpg.get_value("sensor_selector"))  # Get selected sensor number
