@@ -8,6 +8,7 @@ class SensorWindow:
         self.width = width
         self.pos = pos
         self.window_id = window_id
+        self.plot_id = kwargs.get("plot_id", None)
         self.font = kwargs.get("font", None)
         self.no_close = kwargs.get("no_close", False)
         self.height = kwargs.get("height", 300)
@@ -27,27 +28,25 @@ class SensorWindow:
 
     def create_window(self):
         """Create the window and plot inside it."""
-        with dpg.window(label=self.label, width=self.width, pos=self.pos, id=self.window_id, no_close=self.no_close,
+        with dpg.window(label=self.label, width=self.width, pos=self.pos, tag=self.window_id, no_close=self.no_close,
                         height=self.height):
             if self.font: dpg.bind_font(self.font)
             btn = dpg.add_button(label="", callback=self.get_window_position)
             dpg.set_item_label(btn, "Button 57")
             dpg.set_item_width(btn, self.width-15)
-
             # Create the plot as part of the class
             self.create_plot()
 
     def create_plot(self):
         """Create the plot inside the window."""
-        with dpg.plot(label="Line Series", height=self.height-90, width=self.width-15):
-            # Optionally create legend
-            dpg.add_plot_legend()
-            # Create x and y axes
-            dpg.add_plot_axis(dpg.mvXAxis, label="x")
-            dpg.add_plot_axis(dpg.mvYAxis, label="y", tag=f"y_axis_{self.window_id}")
-
-            # Add the line series using the class properties
-            dpg.add_line_series(self.sindatax, self.sindatay, parent=f"y_axis_{self.window_id}")
+        self.plot_id = dpg.add_plot(label="Line Series Plot", height=self.height-90, width=self.width-15,
+                               parent=self.window_id)
+        dpg.add_plot_legend(parent=self.plot_id)
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="Time", parent=self.plot_id)
+        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="Value", parent=self.plot_id)
+        l_name = "plot" + str(self.window_id)
+        dpg.add_line_series(self.sindatax, self.sindatay, parent=y_axis, tag=l_name)
+        
     
     def get_window_position(self, sender, app_data, user_data):
         """Callback function to get and print the window position."""
@@ -81,7 +80,9 @@ class AboutWindow:
 
     def show(self):
         """Creates and shows the About window."""
-        with dpg.window(label="About", width=500, height=300, tag=self.window_tag, pos=(250, 200), no_resize=True, no_collapse=True):
+        with dpg.window(label="About", width=500, height=300, 
+                        tag=self.window_tag, pos=(250, 200), no_resize=True, no_collapse=True,
+                        on_close=lambda sender, app_data: dpg.delete_item(sender)):
             dpg.add_text("Tangerang Selatan, Indonesia", pos=(280, 25))  # Location and flag at top right
             dpg.add_spacer(height=12)
             with dpg.group(horizontal=False):  # Main content area
