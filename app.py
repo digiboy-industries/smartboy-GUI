@@ -233,7 +233,7 @@ def append_for_graphs():
                     sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
                     l_name = "plot" + str(i)
                     b_name = "btn" + str(i)
-                    b_lbl = settings["settings"]["sensor_data"][str(i)]["unit"]
+                    b_lbl = str(h) + settings["settings"]["sensor_data"][str(i)]["unit"]
                     dpg.set_value(l_name, [sensor_graph[str(i)]["x"], sensor_graph[str(i)]["y"]])
                     dpg.set_item_label(b_name, b_lbl)
                 else:
@@ -264,7 +264,7 @@ def append_for_graphs():
                     sensor_graph[str(j)]["x"].append((len(sensor_graph[str(j)]["y"])) * settings["settings"]["interval"])
                     l_name = "plot" + str(j)
                     b_name = "btn" + str(j)
-                    b_lbl = settings["settings"]["sensor_data"][str(j)]["unit"]
+                    b_lbl = str(h) + settings["settings"]["sensor_data"][str(j)]["unit"]
                     dpg.set_value(l_name, [sensor_graph[str(j)]["x"], sensor_graph[str(j)]["y"]])
                     dpg.set_item_label(b_name, b_lbl)
                 else:
@@ -364,8 +364,11 @@ def sensor_sett_window(sender, app_data, user_data):
             dpg.add_button(label="Save", tag="btn_save_sensor", callback=save_sensor_settings)
 
 def interval_save(sender, app_data, user_data):
-    settings["settings"]["interval"] = dpg.get_value("tinterval")
-    dpg.delete_item("sensor_sett_window")
+    if dpg.get_value("tinterval") < 0.005:
+        settings["settings"]["interval"] = 0.005
+        dpg.set_value("tinterval", 0.005)
+    else:
+        settings["settings"]["interval"] = dpg.get_value("tinterval")
 
 # Interval Acq Setting Window
 def interval_sett_window(sender, app_data, user_data):
