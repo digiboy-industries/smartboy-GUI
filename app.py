@@ -234,7 +234,7 @@ def append_for_graphs():
                     l_name = "plot" + str(i)
                     b_name = "btn" + str(i)
                     b_lbl = str(h) + settings["settings"]["sensor_data"][str(i)]["unit"]
-                    dpg.set_value(l_name, [sensor_graph[str(i)]["x"], sensor_graph[str(i)]["y"]])
+                    dpg.configure_item(l_name, x=sensor_graph[str(i)]["x"], y=sensor_graph[str(i)]["y"])
                     dpg.set_item_label(b_name, b_lbl)
                 else:
                     continue
@@ -265,7 +265,7 @@ def append_for_graphs():
                     l_name = "plot" + str(j)
                     b_name = "btn" + str(j)
                     b_lbl = str(h) + settings["settings"]["sensor_data"][str(j)]["unit"]
-                    dpg.set_value(l_name, [sensor_graph[str(j)]["x"], sensor_graph[str(j)]["y"]])
+                    dpg.configure_item(l_name, x=sensor_graph[str(j)]["x"], y=sensor_graph[str(j)]["y"])
                     dpg.set_item_label(b_name, b_lbl)
                 else:
                     continue
