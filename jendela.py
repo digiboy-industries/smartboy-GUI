@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 import random
 from PIL import ImageGrab
+import datetime
 
 class SensorWindow:
     def __init__(self, label, width, pos, window_id, **kwargs):
@@ -69,9 +70,6 @@ class ErrorMessageBox:
     def close(self, sender, app_data=None, user_data=None):
         """Closes the error window."""
         dpg.delete_item(self.window_id)
-
-import dearpygui.dearpygui as dpg
-import datetime
 
 class AboutWindow:
     def __init__(self):
