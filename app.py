@@ -69,24 +69,24 @@ def fetch_serial_data():
             if v_execute1 and v_execute2:
                 # print("R1R2")
                 if ser1.is_open and ser2.is_open:
-                    ser1.flushInput()
-                    ser2.flushInput()
                     raw_data1 = ser1.readline().decode('utf-8').strip()
                     raw_data2 = ser2.readline().decode('utf-8').strip()
-                    print(raw_data1)
-                    print(raw_data2)
+                    ser1.flushInput()
+                    ser2.flushInput()
+                    # print(raw_data1)
+                    # print(raw_data2)
             if v_execute1:
                 # print("R1")
                 if ser1.is_open:
-                    ser1.flushInput()
                     raw_data1 = ser1.readline().decode('utf-8').strip()
-                    print(raw_data1)
+                    # print(raw_data1)
+                    ser1.flushInput()
             if v_execute2:
                 # print("R2")
                 if ser2.is_open:
-                    ser2.flushInput()
                     raw_data2 = ser2.readline().decode('utf-8').strip()
-                    print(raw_data2)
+                    # print(raw_data2)
+                    ser2.flushInput()
             sleep(float(settings["settings"]["interval"]))
         except Exception as e:
             print(e)
@@ -101,11 +101,15 @@ def parse_sensor_data(data_str):
     Returns:
     dict: Dictionary containing sensor readings as {'S1': {'current': value, 'voltage': value}, ...}
     """
-    sensor_data = {}
+    sensor_data = {"XRPM": {"rpm" : 0}}
     # Split the data by semicolons into individual sensor entries
     data_parts = data_str.split(';')
     current_sensor = None  # Placeholder for current sensor key (e.g., S1, S2)
     for part in data_parts:
+        if "XR" in part:
+            rpm_value = part.split('=')[1]
+            int_rpm_value = rpm_value.replace('rpm', '')
+            sensor_data['XRPM']['rpm'] = int(int_rpm_value)
         if "S" in part:  # Identify sensor (e.g., S1, S2)
             current_sensor = part.split('=')[0]  # Extract sensor identifier
             sensor_data[current_sensor] = {}  # Initialize sensor data in dictionary
@@ -215,6 +219,7 @@ def append_for_graphs():
                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
                 if (raw_data1 is not None) and (str(raw_data1).strip() != "") :
                     temp = parse_sensor_data(raw_data1)
+                    print(temp)
                     ns = "S" + str(i)
                     if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
                     if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
@@ -246,6 +251,7 @@ def append_for_graphs():
                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
                 if (raw_data2 is not None) :
                     temp = parse_sensor_data(raw_data2)
+                    print(temp)
                     ns = "S" + str(i)
                     if settings["settings"]["sensor_data"][str(j)]["type"] == "voltage": y = temp[ns]["voltage"]
                     if settings["settings"]["sensor_data"][str(j)]["type"] == "current": y = temp[ns]["current"]
