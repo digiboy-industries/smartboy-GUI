@@ -3,6 +3,28 @@ import random
 from PIL import ImageGrab
 import datetime
 
+class RPM_SensorWindow():
+    def __init__(self, label, width, pos, window_id, **kwargs):
+        self.label = label
+        self.width = width
+        self.height = kwargs.get("height", 30)
+        self.pos = pos
+        self.window_id = window_id
+        self.font = kwargs.get("font", None)
+        self.no_close = kwargs.get("no_close", False)
+        self.create_window()
+    
+    def create_window(self):
+         with dpg.window(label=self.label, width=self.width, pos=self.pos, tag=self.window_id, no_close=self.no_close,
+                        height=self.height):
+            if self.font: dpg.bind_item_font(dpg.last_item(), self.font)
+            dpg.add_text("RPM", tag=self.window_id+"rpm_cap")
+            dpg.add_text(tag=self.window_id+"rpm_val")
+    
+    def close(self, sender, app_data=None, user_data=None):
+        dpg.delete_item(self.window_id)
+
+
 class SensorWindow:
     def __init__(self, label, width, pos, window_id, **kwargs):
         self.label = label
@@ -31,7 +53,7 @@ class SensorWindow:
         """Create the window and plot inside it."""
         with dpg.window(label=self.label, width=self.width, pos=self.pos, tag=self.window_id, no_close=self.no_close,
                         height=self.height):
-            if self.font: dpg.bind_font(self.font)
+            if self.font: dpg.bind_item_font(dpg.last_item(), self.font)
             tagbtn = "btn" + str(self.window_id)
             btn = dpg.add_button(label="<>", callback=self.get_window_position, tag=tagbtn)
             dpg.set_item_width(btn, self.width-15)
@@ -42,10 +64,11 @@ class SensorWindow:
         """Create the plot inside the window."""
         self.plot_id = dpg.add_plot(label="Line Series Plot", height=self.height-90, width=self.width-15,
                                parent=self.window_id)
-        dpg.add_plot_legend(parent=self.plot_id)
-        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="Time", parent=self.plot_id)
-        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="Value", parent=self.plot_id)
         l_name = "plot" + str(self.window_id)
+        dpg.add_plot_legend(parent=self.plot_id)
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="Time", parent=self.plot_id, tag=l_name+"x")
+        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="Value", parent=self.plot_id, tag=l_name+"y")
+        
         dpg.add_line_series(self.sindatax, self.sindatay, parent=y_axis, tag=l_name)
         
     
