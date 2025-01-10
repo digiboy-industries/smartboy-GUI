@@ -7,7 +7,7 @@ import threading
 import serial
 import dearpygui.dearpygui as dpg
 from hardware import reload_comport
-from jendela import SensorWindow, AboutWindow, trigger_error, \
+from jendela import RPM_SensorWindow,SensorWindow, AboutWindow, trigger_error, \
     light_brown_window, get_resolution, dark_gray_window, \
     dark_purple, dark_green
 
@@ -118,7 +118,10 @@ def parse_sensor_data(data_str):
         elif "mV" in part:  # Identify voltage
             voltage_value = part.replace('mV', '')  # Get voltage value
             sensor_data[current_sensor]['voltage'] = float(voltage_value)  # Store voltage in mV
-    return sensor_data
+    if("S1" and "S2" and "S3" and "S4" in sensor_data):
+        return sensor_data
+    else:
+        return ""
 
                    
 def print_me(sender):
@@ -175,6 +178,8 @@ def spawn_4windows(sender, app_data, user_data):
             try:
                 ser1 = serial.Serial(sername, 115200, timeout=1)
                 v_execute1 = True
+                RPM_SensorWindow(label="RPM Sensor", width=200, pos=(400, 300), window_id="rpm_window", no_close=False,
+                                 font=default_font)
                 for i in range(user_data["range1"], user_data["range2"]):
                     if dpg.does_item_exist(i):
                         dpg.delete_item(i)
@@ -219,28 +224,35 @@ def append_for_graphs():
                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
                 if (raw_data1 is not None) and (str(raw_data1).strip() != "") :
                     temp = parse_sensor_data(raw_data1)
-                    print(temp)
-                    ns = "S" + str(i)
-                    if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
-                    if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
-                    try:
-                        ymin = settings["settings"]["sensor_data"][str(i)]["min"]
-                        ymax = settings["settings"]["sensor_data"][str(i)]["max"]
-                        xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
-                        xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
-                        h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
-                        if (y>0): h = abs(round(h, 3)) 
-                        elif(y<0 and y<ymin): h = 0
-                        else: h = round(h, 3)
-                    except:
-                        h = 0
-                    sensor_graph[str(i)]["y"].append(h)
-                    sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
-                    l_name = "plot" + str(i)
-                    b_name = "btn" + str(i)
-                    b_lbl = str(h) + settings["settings"]["sensor_data"][str(i)]["unit"]
-                    dpg.configure_item(l_name, x=sensor_graph[str(i)]["x"], y=sensor_graph[str(i)]["y"])
-                    dpg.set_item_label(b_name, b_lbl)
+                    if temp != "":
+                        dpg.set_value("rpm_windowrpm_val", str(temp["XRPM"]["rpm"]))
+                        print(temp)
+                        ns = "S" + str(i)
+                        if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
+                        if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
+                        try:
+                            ymin = settings["settings"]["sensor_data"][str(i)]["min"]
+                            ymax = settings["settings"]["sensor_data"][str(i)]["max"]
+                            xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
+                            xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
+                            h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
+                            if (y>0): h = abs(round(h, 3)) 
+                            elif(y<0 and y<ymin): h = 0
+                            else: h = round(h, 3)
+                        except:
+                            h = 0
+                        sensor_graph[str(i)]["y"].append(h)
+                        sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
+                        l_name = "plot" + str(i)
+                        b_name = "btn" + str(i)
+                        b_lbl = str(h) + settings["settings"]["sensor_data"][str(i)]["unit"]
+                        dpg.configure_item(l_name, x=sensor_graph[str(i)]["x"], y=sensor_graph[str(i)]["y"])
+                                # Force axis rescale to refresh the graph
+                        dpg.fit_axis_data(l_name+"x")
+                        dpg.fit_axis_data(l_name+"y")
+                        dpg.set_item_label(b_name, b_lbl)
+                    else:
+                        continue
                 else:
                     continue
                 
@@ -251,28 +263,33 @@ def append_for_graphs():
                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
                 if (raw_data2 is not None) :
                     temp = parse_sensor_data(raw_data2)
-                    print(temp)
-                    ns = "S" + str(i)
-                    if settings["settings"]["sensor_data"][str(j)]["type"] == "voltage": y = temp[ns]["voltage"]
-                    if settings["settings"]["sensor_data"][str(j)]["type"] == "current": y = temp[ns]["current"]
-                    try:
-                        ymin = settings["settings"]["sensor_data"][str(j)]["min"]
-                        ymax = settings["settings"]["sensor_data"][str(j)]["max"]
-                        xmax = settings["settings"]["sensor_data"][str(j)]["maxunit"]
-                        xmin = settings["settings"]["sensor_data"][str(j)]["minunit"]                        
-                        h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
-                        if (y>0): h = abs(round(h, 3)) 
-                        elif(y<0 and y<ymin): h = 0
-                        else: h = round(h, 3)
-                    except:
-                        h = 0
-                    sensor_graph[str(j)]["y"].append(h)
-                    sensor_graph[str(j)]["x"].append((len(sensor_graph[str(j)]["y"])) * settings["settings"]["interval"])
-                    l_name = "plot" + str(j)
-                    b_name = "btn" + str(j)
-                    b_lbl = str(h) + settings["settings"]["sensor_data"][str(j)]["unit"]
-                    dpg.configure_item(l_name, x=sensor_graph[str(j)]["x"], y=sensor_graph[str(j)]["y"])
-                    dpg.set_item_label(b_name, b_lbl)
+                    if temp != "":
+                        print(temp)
+                        ns = "S" + str(i)
+                        if settings["settings"]["sensor_data"][str(j)]["type"] == "voltage": y = temp[ns]["voltage"]
+                        if settings["settings"]["sensor_data"][str(j)]["type"] == "current": y = temp[ns]["current"]
+                        try:
+                            ymin = settings["settings"]["sensor_data"][str(j)]["min"]
+                            ymax = settings["settings"]["sensor_data"][str(j)]["max"]
+                            xmax = settings["settings"]["sensor_data"][str(j)]["maxunit"]
+                            xmin = settings["settings"]["sensor_data"][str(j)]["minunit"]                        
+                            h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
+                            if (y>0): h = abs(round(h, 3)) 
+                            elif(y<0 and y<ymin): h = 0
+                            else: h = round(h, 3)
+                        except:
+                            h = 0
+                        sensor_graph[str(j)]["y"].append(h)
+                        sensor_graph[str(j)]["x"].append((len(sensor_graph[str(j)]["y"])) * settings["settings"]["interval"])
+                        l_name = "plot" + str(j)
+                        b_name = "btn" + str(j)
+                        b_lbl = str(h) + settings["settings"]["sensor_data"][str(j)]["unit"]
+                        dpg.configure_item(l_name, x=sensor_graph[str(j)]["x"], y=sensor_graph[str(j)]["y"])
+                        dpg.fit_axis_data(l_name+"x")
+                        dpg.fit_axis_data(l_name+"y")
+                        dpg.set_item_label(b_name, b_lbl)
+                    else:
+                        continue
                 else:
                     continue
         # print(sensor_graph[str("5")])
