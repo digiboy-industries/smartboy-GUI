@@ -105,6 +105,9 @@ def parse_sensor_data(data_str):
     # Split the data by semicolons into individual sensor entries
     data_parts = data_str.split(';')
     current_sensor = None  # Placeholder for current sensor key (e.g., S1, S2)
+    signals = ['S1', 'S2', 'S3', 'S4']
+    if all(signal not in "".join(data_str) for signal in signals):
+        return ""
     for part in data_parts:
         if "XR" in part:
             rpm_value = part.split('=')[1]
