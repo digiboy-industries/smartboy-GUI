@@ -2,9 +2,9 @@ import sqlite3
 import os
 from datetime import datetime
 
-def save_to_db(temp):
+def save_to_db(Sdictionary):
     """
-    temp is dictionary
+    Sdictionary is dictionary after parsed from sensor
     """
     today_date = datetime.now().strftime("%Y-%m-%d")
     db_name = f"{today_date}.db"
@@ -18,8 +18,7 @@ def save_to_db(temp):
                 CREATE TABLE IF NOT EXISTS measurements (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     datetime TEXT NOT NULL,
-                    XRPM_name TEXT,
-                    XRPM INTEGER,
+                    Sensor_RPM INTEGER,
                     S1_name TEXT,
                     S1_value REAL,
                     S1_unit TEXT,
@@ -61,6 +60,10 @@ def save_to_db(temp):
                     S7_unit TEXT,
                     S7_current REAL,
                     S7_voltage REAL,
+                    
+                    S8_name TEXT,
+                    S8_value REAL,
+                    S8_unit TEXT,
                     S8_current REAL,
                     S8_voltage REAL
                 )
@@ -68,25 +71,85 @@ def save_to_db(temp):
             conn.commit()
 
     # Insert data into the database
-    if (temp != ""):
+    if (Sdictionary != {} and type(Sdictionary)== dict):
         with sqlite3.connect(db_name) as conn:
             cursor = conn.cursor()
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             # Extracting values from the data dictionary
-            XRPM = temp.get('XRPM', {})
-            S1_current = temp.get('S1', {}).get('current', None)
-            S1_voltage = temp.get('S1', {}).get('voltage', None)
-            S2_current = temp.get('S2', {}).get('current', None)
-            S2_voltage = temp.get('S2', {}).get('voltage', None)
-            S3_current = temp.get('S3', {}).get('current', None)
-            S3_voltage = temp.get('S3', {}).get('voltage', None)
-            S4_current = temp.get('S4', {}).get('current', None)
-            S4_voltage = temp.get('S4', {}).get('voltage', None)
+            XRPM = Sdictionary.get('XRPM', {})
+            S1_current = Sdictionary.get('S1', {}).get('current', None)
+            S1_voltage = Sdictionary.get('S1', {}).get('voltage', None)
+            S1_name = Sdictionary.get('S1', {}).get('name', None)
+            S1_value = Sdictionary.get('S1', {}).get('value', None)
+            S1_unit = Sdictionary.get('S1', {}).get('unit', None)
 
+            S2_current = Sdictionary.get('S2', {}).get('current', None)
+            S2_voltage = Sdictionary.get('S2', {}).get('voltage', None)
+            S2_name = Sdictionary.get('S2', {}).get('name', None)
+            S2_value = Sdictionary.get('S2', {}).get('value', None)
+            S2_unit = Sdictionary.get('S2', {}).get('unit', None)
+
+            S3_current = Sdictionary.get('S3', {}).get('current', None)
+            S3_voltage = Sdictionary.get('S3', {}).get('voltage', None)
+            S3_name = Sdictionary.get('S3', {}).get('name', None)
+            S3_value = Sdictionary.get('S3', {}).get('value', None)
+            S3_unit = Sdictionary.get('S3', {}).get('unit', None)
+
+            S4_current = Sdictionary.get('S4', {}).get('current', None)
+            S4_voltage = Sdictionary.get('S4', {}).get('voltage', None)
+            S4_name = Sdictionary.get('S4', {}).get('name', None)
+            S4_value = Sdictionary.get('S4', {}).get('value', None)
+            S4_unit = Sdictionary.get('S4', {}).get('unit', None)
+
+            S5_current = Sdictionary.get('S5', {}).get('current', None)
+            S5_voltage = Sdictionary.get('S5', {}).get('voltage', None)
+            S5_name = Sdictionary.get('S5', {}).get('name', None)
+            S5_value = Sdictionary.get('S5', {}).get('value', None)
+            S5_unit = Sdictionary.get('S5', {}).get('unit', None)
+
+            S6_current = Sdictionary.get('S6', {}).get('current', None)
+            S6_voltage = Sdictionary.get('S6', {}).get('voltage', None)
+            S6_name = Sdictionary.get('S6', {}).get('name', None)
+            S6_value = Sdictionary.get('S6', {}).get('value', None)
+            S6_unit = Sdictionary.get('S6', {}).get('unit', None)
+
+            S7_current = Sdictionary.get('S7', {}).get('current', None)
+            S7_voltage = Sdictionary.get('S7', {}).get('voltage', None)
+            S7_name = Sdictionary.get('S7', {}).get('name', None)
+            S7_value = Sdictionary.get('S7', {}).get('value', None)
+            S7_unit = Sdictionary.get('S7', {}).get('unit', None)
+
+            S8_current = Sdictionary.get('S8', {}).get('current', None)
+            S8_voltage = Sdictionary.get('S8', {}).get('voltage', None)
+            S8_name = Sdictionary.get('S8', {}).get('name', None)
+            S8_value = Sdictionary.get('S8', {}).get('value', None)
+            S8_unit = Sdictionary.get('S8', {}).get('unit', None)
             # Insert data into the table
             cursor.execute('''
-                INSERT INTO measurements (datetime, XRPM, S1_current, S1_voltage, S2_current, S2_voltage, S3_current, S3_voltage, S4_current, S4_voltage)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (now, XRPM, S1_current, S1_voltage, S2_current, S2_voltage, S3_current, S3_voltage, S4_current, S4_voltage))
+                INSERT INTO measurements (datetime, Sensor_RPM, S1_name, S1_value, S1_unit, S1_current, S1_voltage, 
+                S2_name, S2_value, S2_unit, S2_current, S2_voltage, 
+                S3_name, S3_value, S3_unit, S3_current, S3_voltage, 
+                S4_name, S4_value, S4_unit, S4_current, S4_voltage,
+                S5_name, S5_value, S5_unit, S5_current, S5_voltage,
+                S6_name, S6_value, S6_unit, S6_current, S6_voltage,
+                S7_name, S7_value, S7_unit, S7_current, S7_voltage,
+                S8_name, S8_value, S8_unit, S8_current, S8_voltage)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? , ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?, ? , ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?, ? , ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?, ? , ?,
+                        ?, ?)
+            ''', (now, XRPM, S1_name, S1_value, S1_unit, S1_current, S1_voltage,
+                  S2_name, S2_value, S2_unit, S2_current, S2_voltage,
+                  S3_name, S3_value, S3_unit, S3_current, S3_voltage,
+                  S4_name, S4_value, S4_unit, S4_current, S4_voltage,
+                  S5_name, S5_value, S5_unit, S5_current, S5_voltage,
+                  S6_name, S6_value, S6_unit, S6_current, S6_voltage,
+                  S7_name, S7_value, S7_unit, S7_current, S7_voltage,
+                  S8_name, S8_value, S8_unit, S8_current, S8_voltage)
+                        )
             conn.commit()
+            return 0
+    else:
+        return 1
