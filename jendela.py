@@ -120,7 +120,7 @@ Author dedicated this programm to his sons: Musa and Eisa."""
             
             # Hyperlink to digiboy.com
             dpg.add_text("Visit: ")
-            dpg.add_text("https://digiboy.com", color=(50, 188, 255), bullet=True)  # Center bottom link
+            dpg.add_text("https://digiboy.id", color=(50, 188, 255), bullet=True)  # Center bottom link
             dpg.add_text("author: aviezab © 2024")
             
             # OK Button
