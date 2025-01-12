@@ -30,6 +30,6 @@ XR means RPM Sensor.
 - Open Source, You can edit it and ship it in Your work!
 
 ## Showcase
-![Real Time Measurement](screenshots\MeasurementWindows.jpg "Real Time Measurements")
+![Real Time Measurement](screenshots/MeasurementWindows.jpg "Real Time Measurements")
 
-![Sensor Calibration](screenshots\SensosrSetting.jpg "Sensor Calibration")
+![Sensor Calibration](screenshots/SensosrSetting.jpg "Sensor Calibration")
