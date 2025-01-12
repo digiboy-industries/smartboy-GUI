@@ -55,6 +55,27 @@ def load_state():
     return state
 settings = load_state()
 
+def apf(y, xmin, xmax, ymin, ymax):
+    # h =  xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
+    try:
+        y = float(y)
+        ymin = float(ymin)
+        ymax = float(ymax)
+        xmin = float(xmin)
+        xmax = float(xmax)
+        pertama = y - ymin
+        kedua = xmax - xmin
+        ketiga = ymax - ymin
+        keempat = pertama * kedua
+        kelima = keempat / ketiga
+        hasil = xmin + (kelima)
+        hasil = round(hasil, 3)
+        return hasil
+    except ZeroDivisionError:
+        return 0
+    except Exception as e:
+        print(e)
+
 def fetch_serial_data():
     global v_execute1
     global v_execute2
@@ -98,63 +119,37 @@ def parse_sensor_data(data_a, data_b):
         segments = data_a.split(";")
         for segment in segments:
             if segment.startswith("XR"):
-                sensor_data["XRPM"] = segment.split("=")[1]
+                rpm_data = segment.split("=")[1]
+                rpm_data = rpm_data.replace("rpm", "")
+                sensor_data["XRPM"] = {}
+                sensor_data["XRPM"]["rpm"] = int(rpm_data)
             elif "S" in segment:
                 sensor_id, values = segment.split("=")
                 sensor_data[sensor_id] = {}
-                sensor_data[sensor_id]['current'] = values
+                current_value = values.replace("mA", "")
+                sensor_data[sensor_id]["current"] = current_value
             elif "mV" in segment:
-                voltage_value = segment.replace('mV', '')
-                sensor_data[sensor_id]['voltage'] = float(voltage_value)
+                voltage_value = segment.replace("mV", "")
+                sensor_data[sensor_id]["voltage"] = float(voltage_value)
 
     # Parse Data B
     if data_b:
         segments = data_b.split(";")
+        sensor_offset = 5  # Start at S5 for data_b
         for segment in segments:
             if "S" in segment:
-                sensor_id, values = segment.split("=")
-                sensor_data[sensor_id] = {}
-                sensor_data[sensor_id]['current'] = values
+                _, values = segment.split("=")
+                sensor_data[f"S{sensor_offset}"] = {}
+                current_value = values.replace("mA", "")
+                sensor_data[f"S{sensor_offset}"]['current'] = current_value
             elif "mV" in segment:
                 voltage_value = segment.replace('mV', '')
-                sensor_data[sensor_id]['voltage'] = float(voltage_value)
+                sensor_data[f"S{sensor_offset}"]['voltage'] = float(voltage_value)
+                sensor_offset += 1
+    # if("S1" and "S2" and "S3" and "S4" in sensor_data):
     return sensor_data
-
-def parse_sensor_dataX(data_str):
-    """
-    Parses the raw sensor data string and returns a dictionary of sensor readings.
-    
-    Args:
-    data_str (str): Raw data string (e.g., 'S1=-2.50mA;400.00mV;S2=-2.50mA;0.00mV;...')
-    
-    Returns:
-    dict: Dictionary containing sensor readings as {'S1': {'current': value, 'voltage': value}, ...}
-    """
-    sensor_data = {"XRPM": {"rpm" : 0}}
-    # Split the data by semicolons into individual sensor entries
-    data_parts = data_str.split(';')
-    current_sensor = None  # Placeholder for current sensor key (e.g., S1, S2)
-    signals = ['S1', 'S2', 'S3', 'S4']
-    if all(signal not in "".join(data_str) for signal in signals):
-        return ""
-    for part in data_parts:
-        if "XR" in part:
-            rpm_value = part.split('=')[1]
-            int_rpm_value = rpm_value.replace('rpm', '')
-            sensor_data['XRPM']['rpm'] = int(int_rpm_value)
-        if "S" in part:  # Identify sensor (e.g., S1, S2)
-            current_sensor = part.split('=')[0]  # Extract sensor identifier
-            sensor_data[current_sensor] = {}  # Initialize sensor data in dictionary
-            current_value = part.split('=')[1]  # Get current value
-            sensor_data[current_sensor]['current'] = float(current_value.replace('mA', ''))  # Store current in mA
-        elif "mV" in part:  # Identify voltage
-            voltage_value = part.replace('mV', '')  # Get voltage value
-            sensor_data[current_sensor]['voltage'] = float(voltage_value)  # Store voltage in mV
-    if("S1" and "S2" and "S3" and "S4" in sensor_data):
-        return sensor_data
-    else:
-        return ""
-
+    # else:
+        # return ""
                    
 def print_me(sender):
     print(f"Menu Item: {sender}")
@@ -250,61 +245,63 @@ def append_for_graphs():
     global v_execute1
     global v_execute2
     global nyala
+    y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
+    sltime = float(settings["settings"]["interval"])
     while(nyala):
-        parsed_data = parse_sensor_data(raw_data1, raw_data2)
-        print(parsed_data)
-        sleep(1)
-    # while (nyala):
-    #     sens_dict = {}
-    #     try:
-    #         if v_execute1 and v_execute2:
-    #             print("both active")
-    #             for i in range(1,9):
-    #                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
-    #                 if (raw_data1 is not None) and (str(raw_data1).strip() != "") :
-    #                     temp = parse_sensor_data(raw_data1)
-    #                     if temp != "":
-    #                         dpg.set_value("rpm_windowrpm_val", str(temp["XRPM"]["rpm"]))
-    #                         ns = "S" + str(i)
-    #                         sens_dict["XRPM"] = int(temp["XRPM"]["rpm"])
-    #                         sens_dict[ns] = {}
-    #                         sens_dict[ns]["current"] = temp[ns]["current"]
-    #                         sens_dict[ns]["voltage"] = temp[ns]["voltage"]
-    #                         if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
-    #                         if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
-    #                         ymin = settings["settings"]["sensor_data"][str(i)]["min"]
-    #                         ymax = settings["settings"]["sensor_data"][str(i)]["max"]
-    #                         xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
-    #                         xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
-    #                         h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
-    #                         if (y>0): h = abs(round(h, 3)) 
-    #                         elif(y<0 and y<ymin): h = 0
-    #                         else: h = round(h, 3)
-    #                         nam = settings["settings"]["sensor_data"][str(i)]["name"]
-    #                         un = settings["settings"]["sensor_data"][str(i)]["unit"]
-    #                         sens_dict[ns]["name"] = nam
-    #                         sens_dict[ns]["value"] = h
-    #                         sens_dict[ns]["unit"] = un
-    #                         sensor_graph[str(i)]["y"].append(h)
-    #                         sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
-    #                         l_name = "plot" + str(i)
-    #                         b_name = "btn" + str(i)
-    #                         b_lbl = str(h) + un
-    #                         dpg.configure_item(l_name, x=sensor_graph[str(i)]["x"], y=sensor_graph[str(i)]["y"])
-    #                         # Force axis rescale to refresh the graph
-    #                         dpg.fit_axis_data(l_name+"x")
-    #                         dpg.fit_axis_data(l_name+"y")
-    #                         dpg.set_item_label(b_name, b_lbl)
-    #                     else:
-    #                         continue
-    #                 else:
-    #                     continue
-    #         sltime = float(settings["settings"]["interval"])
-    #         sleep(sltime)
-    #     except:
-    #         continue
+        sens_dict = {}
+        try:
+            temp = parse_sensor_data(raw_data1, raw_data2)
+            # print(temp)
+            for i in range(1, 9):
+                sensor_key = f"S{i}"
+                if "XRPM" in temp:
+                    dpg.set_value("rpm_windowrpm_val", str(temp["XRPM"]["rpm"]))
+                if sensor_key in temp:
+                    # sensor_window.update_label(parsed_data[sensor_key])
+                    sens_dict[sensor_key] = {}
+                    sens_dict[sensor_key]["voltage"] = temp[sensor_key]["voltage"]
+                    sens_dict[sensor_key]["current"] = temp[sensor_key]["current"]
+                    if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage":
+                        y = temp[sensor_key]["voltage"]
+                    elif settings["settings"]["sensor_data"][str(i)]["type"] == "current":
+                        y = temp[sensor_key]["current"]
+                    y = float(y)
+                    ymin = settings["settings"]["sensor_data"][str(i)]["min"]
+                    ymax = settings["settings"]["sensor_data"][str(i)]["max"]
+                    xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
+                    xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
+                    h = apf(y, xmin, xmax, ymin, ymax) # h is result
+                    if (y>0):
+                        h = h
+                    elif(y<0 and y<ymin):
+                        h = 0
+                    else: 
+                        h = round(h, 3)
+                    nam = settings["settings"]["sensor_data"][str(i)]["name"]
+                    un = settings["settings"]["sensor_data"][str(i)]["unit"]
+                    sens_dict[sensor_key]["name"] = nam
+                    sens_dict[sensor_key]["value"] = h
+                    sens_dict[sensor_key]["unit"] = un
+                    sensor_graph[str(i)]["y"].append(h)
+                    sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
+                    l_name = "plot" + str(i)
+                    b_name = "btn" + str(i)
+                    b_lbl = str(h) + un
+                    dpg.configure_item(l_name, x=sensor_graph[str(i)]["x"], y=sensor_graph[str(i)]["y"])
+                    # Force axis rescale to refresh the graph
+                    dpg.fit_axis_data(l_name+"x")
+                    dpg.fit_axis_data(l_name+"y")
+                    dpg.set_item_label(b_name, b_lbl)
+                else:
+                    pass
+                    # sensor_window.update_label("No Data")
+            # print(sens_dict)
+            sleep(sltime)
+        except Exception as e:
+            print(e)
+            sleep(sltime)
+            pass
         
-
 # Create GUI Context
 dpg.create_context()
 
