@@ -22,8 +22,8 @@ raw_data1 = None
 raw_data2 = None
 nyala = True
 sensor_graph = \
-{"1": {"x": [], "y":[]}, "2": {"x": [], "y":[]}, "3": {"x": [], "y":[]}, "4": {"x": [], "y":[]}, 
-"5": {"x": [], "y":[]}, "6": {"x": [], "y":[]}, "7": {"x": [], "y":[]}, "8":{"x": [], "y":[]}}
+{ "1": {"x": [], "y":[]}, "2": {"x": [], "y":[]}, "3": {"x": [], "y":[]}, "4": {"x": [], "y":[]}, 
+"5": {"x": [], "y":[]}, "6": {"x": [], "y":[]}, "7": {"x": [], "y":[]}, "8":{"x": [], "y":[]} }
 
 STATE_FILENAME = "smartboy-settings.json"
 
@@ -91,7 +91,36 @@ def fetch_serial_data():
         except Exception as e:
             print(e)
 
-def parse_sensor_data(data_str):
+def parse_sensor_data(data_a, data_b):
+    sensor_data = {}
+    # Parse Data A
+    if data_a and "XR=" in data_a:
+        segments = data_a.split(";")
+        for segment in segments:
+            if segment.startswith("XR"):
+                sensor_data["XRPM"] = segment.split("=")[1]
+            elif "S" in segment:
+                sensor_id, values = segment.split("=")
+                sensor_data[sensor_id] = {}
+                sensor_data[sensor_id]['current'] = values
+            elif "mV" in segment:
+                voltage_value = segment.replace('mV', '')
+                sensor_data[sensor_id]['voltage'] = float(voltage_value)
+
+    # Parse Data B
+    if data_b:
+        segments = data_b.split(";")
+        for segment in segments:
+            if "S" in segment:
+                sensor_id, values = segment.split("=")
+                sensor_data[sensor_id] = {}
+                sensor_data[sensor_id]['current'] = values
+            elif "mV" in segment:
+                voltage_value = segment.replace('mV', '')
+                sensor_data[sensor_id]['voltage'] = float(voltage_value)
+    return sensor_data
+
+def parse_sensor_dataX(data_str):
     """
     Parses the raw sensor data string and returns a dictionary of sensor readings.
     
@@ -221,82 +250,60 @@ def append_for_graphs():
     global v_execute1
     global v_execute2
     global nyala
-    while (nyala):
-        if v_execute1:
-            for i in range(1,5):
-                y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
-                if (raw_data1 is not None) and (str(raw_data1).strip() != "") :
-                    temp = parse_sensor_data(raw_data1)
-                    if temp != "":
-                        dpg.set_value("rpm_windowrpm_val", str(temp["XRPM"]["rpm"]))
-                        print(temp)
-                        ns = "S" + str(i)
-                        if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
-                        if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
-                        try:
-                            ymin = settings["settings"]["sensor_data"][str(i)]["min"]
-                            ymax = settings["settings"]["sensor_data"][str(i)]["max"]
-                            xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
-                            xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
-                            h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
-                            if (y>0): h = abs(round(h, 3)) 
-                            elif(y<0 and y<ymin): h = 0
-                            else: h = round(h, 3)
-                        except:
-                            h = 0
-                        sensor_graph[str(i)]["y"].append(h)
-                        sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
-                        l_name = "plot" + str(i)
-                        b_name = "btn" + str(i)
-                        b_lbl = str(h) + settings["settings"]["sensor_data"][str(i)]["unit"]
-                        dpg.configure_item(l_name, x=sensor_graph[str(i)]["x"], y=sensor_graph[str(i)]["y"])
-                                # Force axis rescale to refresh the graph
-                        dpg.fit_axis_data(l_name+"x")
-                        dpg.fit_axis_data(l_name+"y")
-                        dpg.set_item_label(b_name, b_lbl)
-                    else:
-                        continue
-                else:
-                    continue
-                
-
-        if v_execute2:
-            for j in range(5,9):
-                i = j -4
-                y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
-                if (raw_data2 is not None) :
-                    temp = parse_sensor_data(raw_data2)
-                    if temp != "":
-                        print(temp)
-                        ns = "S" + str(i)
-                        if settings["settings"]["sensor_data"][str(j)]["type"] == "voltage": y = temp[ns]["voltage"]
-                        if settings["settings"]["sensor_data"][str(j)]["type"] == "current": y = temp[ns]["current"]
-                        try:
-                            ymin = settings["settings"]["sensor_data"][str(j)]["min"]
-                            ymax = settings["settings"]["sensor_data"][str(j)]["max"]
-                            xmax = settings["settings"]["sensor_data"][str(j)]["maxunit"]
-                            xmin = settings["settings"]["sensor_data"][str(j)]["minunit"]                        
-                            h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
-                            if (y>0): h = abs(round(h, 3)) 
-                            elif(y<0 and y<ymin): h = 0
-                            else: h = round(h, 3)
-                        except:
-                            h = 0
-                        sensor_graph[str(j)]["y"].append(h)
-                        sensor_graph[str(j)]["x"].append((len(sensor_graph[str(j)]["y"])) * settings["settings"]["interval"])
-                        l_name = "plot" + str(j)
-                        b_name = "btn" + str(j)
-                        b_lbl = str(h) + settings["settings"]["sensor_data"][str(j)]["unit"]
-                        dpg.configure_item(l_name, x=sensor_graph[str(j)]["x"], y=sensor_graph[str(j)]["y"])
-                        dpg.fit_axis_data(l_name+"x")
-                        dpg.fit_axis_data(l_name+"y")
-                        dpg.set_item_label(b_name, b_lbl)
-                    else:
-                        continue
-                else:
-                    continue
-        # print(sensor_graph[str("5")])
-        sleep(float(settings["settings"]["interval"]))
+    while(nyala):
+        parsed_data = parse_sensor_data(raw_data1, raw_data2)
+        print(parsed_data)
+        sleep(1)
+    # while (nyala):
+    #     sens_dict = {}
+    #     try:
+    #         if v_execute1 and v_execute2:
+    #             print("both active")
+    #             for i in range(1,9):
+    #                 y, ymin, ymax, xmin, xmax, h = 0, 0, 0, 0, 0, 0
+    #                 if (raw_data1 is not None) and (str(raw_data1).strip() != "") :
+    #                     temp = parse_sensor_data(raw_data1)
+    #                     if temp != "":
+    #                         dpg.set_value("rpm_windowrpm_val", str(temp["XRPM"]["rpm"]))
+    #                         ns = "S" + str(i)
+    #                         sens_dict["XRPM"] = int(temp["XRPM"]["rpm"])
+    #                         sens_dict[ns] = {}
+    #                         sens_dict[ns]["current"] = temp[ns]["current"]
+    #                         sens_dict[ns]["voltage"] = temp[ns]["voltage"]
+    #                         if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage": y = temp[ns]["voltage"]
+    #                         if settings["settings"]["sensor_data"][str(i)]["type"] == "current": y = temp[ns]["current"]
+    #                         ymin = settings["settings"]["sensor_data"][str(i)]["min"]
+    #                         ymax = settings["settings"]["sensor_data"][str(i)]["max"]
+    #                         xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
+    #                         xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
+    #                         h = xmin + ((y - ymin)*(xmax-xmin) / (ymax - ymin))
+    #                         if (y>0): h = abs(round(h, 3)) 
+    #                         elif(y<0 and y<ymin): h = 0
+    #                         else: h = round(h, 3)
+    #                         nam = settings["settings"]["sensor_data"][str(i)]["name"]
+    #                         un = settings["settings"]["sensor_data"][str(i)]["unit"]
+    #                         sens_dict[ns]["name"] = nam
+    #                         sens_dict[ns]["value"] = h
+    #                         sens_dict[ns]["unit"] = un
+    #                         sensor_graph[str(i)]["y"].append(h)
+    #                         sensor_graph[str(i)]["x"].append(len(sensor_graph[str(i)]["y"]))
+    #                         l_name = "plot" + str(i)
+    #                         b_name = "btn" + str(i)
+    #                         b_lbl = str(h) + un
+    #                         dpg.configure_item(l_name, x=sensor_graph[str(i)]["x"], y=sensor_graph[str(i)]["y"])
+    #                         # Force axis rescale to refresh the graph
+    #                         dpg.fit_axis_data(l_name+"x")
+    #                         dpg.fit_axis_data(l_name+"y")
+    #                         dpg.set_item_label(b_name, b_lbl)
+    #                     else:
+    #                         continue
+    #                 else:
+    #                     continue
+    #         sltime = float(settings["settings"]["interval"])
+    #         sleep(sltime)
+    #     except:
+    #         continue
+        
 
 # Create GUI Context
 dpg.create_context()
