@@ -2,3 +2,4 @@
 __pycache__
 smartboy-settings.json
 note.txt
+*.db
