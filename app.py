@@ -10,6 +10,7 @@ from hardware import reload_comport
 from jendela import RPM_SensorWindow,SensorWindow, AboutWindow, trigger_error, \
     light_brown_window, get_resolution, dark_gray_window, \
     dark_purple, dark_green
+from basisdata import save_to_db
 
 settings = None
 v_execute1 = False
@@ -205,7 +206,7 @@ def spawn_4windows(sender, app_data, user_data):
             try:
                 ser1 = serial.Serial(sername, 115200, timeout=1)
                 v_execute1 = True
-                RPM_SensorWindow(label="RPM Sensor", width=200, pos=(400, 300), window_id="rpm_window", no_close=False,
+                RPM_SensorWindow(label="RPM Sensor", width=200, pos=(650, 300), window_id="rpm_window", no_close=False,
                                  font=default_font)
                 for i in range(user_data["range1"], user_data["range2"]):
                     if dpg.does_item_exist(i):
@@ -235,6 +236,7 @@ def spawn_4windows(sender, app_data, user_data):
                 pesan = "Comm Port " + sername + " already used!"
                 trigger_error(user_data={"error_msg": pesan}, sender=sender)
             if v_execute1 == True: dpg.delete_item("comm_sett_window")
+    return
 
 def append_for_graphs():
     # Output for this example from parse_sensor_data():
@@ -256,11 +258,12 @@ def append_for_graphs():
                 sensor_key = f"S{i}"
                 if "XRPM" in temp:
                     dpg.set_value("rpm_windowrpm_val", str(temp["XRPM"]["rpm"]))
+                    sens_dict["XRPM"] = int(temp["XRPM"]["rpm"])
                 if sensor_key in temp:
                     # sensor_window.update_label(parsed_data[sensor_key])
                     sens_dict[sensor_key] = {}
-                    sens_dict[sensor_key]["voltage"] = temp[sensor_key]["voltage"]
-                    sens_dict[sensor_key]["current"] = temp[sensor_key]["current"]
+                    sens_dict[sensor_key]["voltage"] = float(temp[sensor_key]["voltage"])
+                    sens_dict[sensor_key]["current"] = float(temp[sensor_key]["current"])
                     if settings["settings"]["sensor_data"][str(i)]["type"] == "voltage":
                         y = temp[sensor_key]["voltage"]
                     elif settings["settings"]["sensor_data"][str(i)]["type"] == "current":
@@ -296,6 +299,7 @@ def append_for_graphs():
                     pass
                     # sensor_window.update_label("No Data")
             # print(sens_dict)
+            statsave = save_to_db(sens_dict)
             sleep(sltime)
         except Exception as e:
             print(e)
