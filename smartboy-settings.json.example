@@ -1,0 +1,88 @@
+{
+    "app_name": "Smartboy GUI",
+    "settings": {
+        "interval": 1.0,
+        "sensor_data": {
+            "1": {
+                "name": "Pressure Gauge 1",
+                "type": "current",
+                "min": 4.0,
+                "max": 20.0,
+                "minunit": 0.0,
+                "maxunit": 100.0,
+                "unit": "kgf/cm2",
+                "active": true
+            },
+            "2": {
+                "name": "Pressure Gauge 2",
+                "type": "current",
+                "min": 4.0,
+                "max": 20.0,
+                "minunit": 0.0,
+                "maxunit": 100.0,
+                "unit": "kgf/cm2",
+                "active": true
+            },
+            "3": {
+                "name": "Pressure Gauge 3",
+                "type": "current",
+                "min": 4.0,
+                "max": 20.0,
+                "minunit": 0.0,
+                "maxunit": 100.0,
+                "unit": "kgf/cm2",
+                "active": true
+            },
+            "4": {
+                "name": "Force 1",
+                "type": "voltage",
+                "min": 0.0,
+                "max": 2500.0,
+                "minunit": 0.0,
+                "maxunit": 50.0,
+                "unit": "kgf",
+                "active": true
+            },
+            "5": {
+                "name": "Force 2",
+                "type": "voltage",
+                "min": 0.0,
+                "max": 2500.0,
+                "minunit": 0.0,
+                "maxunit": 50.0,
+                "unit": "kgf",
+                "active": true
+            },
+            "6": {
+                "name": "Dummy6",
+                "type": "current",
+                "min": 0.0,
+                "max": 0.0,
+                "minunit": 0.0,
+                "maxunit": 0.0,
+                "unit": "dum",
+                "active": true
+            },
+            "7": {
+                "name": "Dummy7",
+                "type": "voltage",
+                "min": 0.0,
+                "max": 0.0,
+                "minunit": 0.0,
+                "maxunit": 0.0,
+                "unit": "dum",
+                "active": true
+            },
+            "8": {
+                "name": "Dummy8",
+                "type": "voltage",
+                "min": 0.0,
+                "max": 0.0,
+                "minunit": 0.0,
+                "maxunit": 0.0,
+                "unit": "dum",
+                "active": true
+            }
+        }
+    }
+}
