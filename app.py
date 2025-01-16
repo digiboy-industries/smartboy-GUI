@@ -18,6 +18,7 @@ v_execute2 = False
 com_sett = {"port1" : None, "port2" : None}
 comport_list = []
 comport_list = reload_comport()
+comm_deployed = False
 null_literal = "S1=0.00mA;0.00mV;S2=0.00mA;0.00mV;S3=0.00mA;0.00mV;S4=0.00mA;0.00mV;"
 raw_data1 = None
 raw_data2 = None
@@ -159,7 +160,9 @@ def print_me(sender):
 # Window Utils #
 ################
 def show_comm_setting():
-    comm_window(sender=None, app_data=None, user_data={"comport": comport_list})
+    global comm_deployed
+    if comm_deployed: reload_comm_window(sender=None, app_data=None, user_data=None)
+    else: comm_window(sender=None, app_data=None, user_data={"comport": comport_list})
 
 def show_sensor_sett_setting():
     sensor_sett_window(sender=None, app_data=None, user_data=None)
@@ -325,6 +328,8 @@ with dpg.viewport_menu_bar():
 
 # Comm Port Setting Window
 def comm_window(sender, app_data, user_data):
+    global comm_deployed
+    comm_deployed = True
     with dpg.window(label="Communication Port Setting", width=250, 
                     tag="comm_sett_window", pos=(400,300), on_close=delete_window):
         dpg.bind_item_theme(dpg.last_item(), light_brown_window())
