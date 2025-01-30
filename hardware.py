@@ -3,6 +3,14 @@ import sys
 import glob
 import serial
 
+def check_os():
+    if sys.platform.startswith('win'):
+        return ("win")
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        return("linux")
+    elif sys.platform.startswith('darwin'):
+        return("mac")
+
 def serial_ports():
     """ Lists serial port names
         :raises EnvironmentError:
@@ -10,12 +18,12 @@ def serial_ports():
         :returns:
             A list of the serial ports available on the system
     """
-    if sys.platform.startswith('win'):
+    if check_os()=="win":
         ports = ['COM%s' % (i + 1) for i in range(256)]
-    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+    elif check_os()=="linux":
         # this excludes your current terminal "/dev/tty"
         ports = glob.glob('/dev/tty[A-Za-z]*')
-    elif sys.platform.startswith('darwin'):
+    elif check_os()=="mac":
         ports = glob.glob('/dev/tty.*')
     else:
         raise EnvironmentError('Unsupported platform')
