@@ -6,7 +6,7 @@ from time import sleep
 import threading
 import serial
 import dearpygui.dearpygui as dpg
-from hardware import reload_comport
+from hardware import check_os, reload_comport
 from jendela import RPM_SensorWindow,SensorWindow, AboutWindow, trigger_error, \
     light_brown_window, get_resolution, dark_gray_window, \
     dark_purple, dark_green
@@ -28,6 +28,7 @@ sensor_graph = \
 "5": {"x": [], "y":[]}, "6": {"x": [], "y":[]}, "7": {"x": [], "y":[]}, "8":{"x": [], "y":[]} }
 
 STATE_FILENAME = "smartboy-settings.json"
+CALLIB_RPM = 256
 
 def save_state(state):
     with open(STATE_FILENAME, "w") as f:
@@ -261,7 +262,7 @@ def append_for_graphs():
                 sensor_key = f"S{i}"
                 if "XRPM" in temp:
                     dpg.set_value("rpm_windowrpm_val", str(temp["XRPM"]["rpm"]))
-                    sens_dict["XRPM"] = int(temp["XRPM"]["rpm"])
+                    sens_dict["XRPM"] = int(temp["XRPM"]["rpm"]) / CALLIB_RPM
                 if sensor_key in temp:
                     # sensor_window.update_label(parsed_data[sensor_key])
                     sens_dict[sensor_key] = {}
@@ -277,7 +278,7 @@ def append_for_graphs():
                     xmax = settings["settings"]["sensor_data"][str(i)]["maxunit"]
                     xmin = settings["settings"]["sensor_data"][str(i)]["minunit"]
                     h = apf(y, xmin, xmax, ymin, ymax) # h is result
-                    if (y>0):
+                    if (y>0 and y>=ymin and y<=ymax):
                         h = h
                     elif(y<0 and y<ymin):
                         h = 0
@@ -430,7 +431,7 @@ about_window = AboutWindow()
 
 dpg.create_viewport(title='Smartboy GUI', width=1024, height=768, resizable=False)
 # put viewport to the center of screen
-dpg.set_viewport_pos([get_resolution()[0]/4, get_resolution()[1]/8])
+if check_os()=="win": dpg.set_viewport_pos([get_resolution()[0]/4, get_resolution()[1]/8])
 dpg.setup_dearpygui()
 dpg.show_viewport()
 
